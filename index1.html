@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GERT® Therapy Escape Room</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1em;
+        }
+
+        .puzzle-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .puzzle-card.active {
+            display: block;
+        }
+
+        .puzzle-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .puzzle-title {
+            font-size: 1.8em;
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .puzzle-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.05em;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .option-btn:hover {
+            border-color: #764ba2;
+            background: #f3e5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.2);
+        }
+
+        .option-btn.selected {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            display: block;
+        }
+
+        .completion-message {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none;
+            animation: zoomIn 0.6s ease-out;
+        }
+
+        .completion-message.active {
+            display: block;
+        }
+
+        .completion-message h2 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .completion-message p {
+            color: #555;
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.3);
+            height: 8px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .cipher-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cipher-item {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .puzzle-card {
+                padding: 25px;
+            }
+
+            .puzzle-title {
+                font-size: 1.5em;
+            }
+
+            .cipher-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔓 GERT® Escape Room</h1>
+            <p>Journey Through Generational Emotional Realignment</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Puzzle 1: Generational Locks -->
+        <div class="puzzle-card active" id="puzzle1">
+            <span class="puzzle-number">PUZZLE 1 OF 5</span>
+            <h2 class="puzzle-title">🔐 Generational Locks</h2>
+            <p class="puzzle-description">
+                In GERT® therapy, we explore patterns that repeat across generations. 
+                Look at this family timeline and identify the emotion that appears in all three generations:
+            </p>
+            <p class="puzzle-description" style="font-style: italic; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <strong>Grandmother:</strong> Avoided taking risks due to past trauma<br>
+                <strong>Mother:</strong> Stayed in an unfulfilling job, afraid to change<br>
+                <strong>You:</strong> Hesitant to pursue dreams, worried about failure
+            </p>
+            <div class="options">
+                <button class="option-btn" data-answer="anger">Anger</button>
+                <button class="option-btn" data-answer="fear">Fear</button>
+                <button class="option-btn" data-answer="sadness">Sadness</button>
+                <button class="option-btn" data-answer="guilt">Guilt</button>
+            </div>
+            <button class="submit-btn" onclick="checkPuzzle1()">Unlock Next Puzzle</button>
+            <div class="feedback" id="feedback1"></div>
+        </div>
+
+        <!-- Puzzle 2: Mirror of Realignment -->
+        <div class="puzzle-card" id="puzzle2">
+            <span class="puzzle-number">PUZZLE 2 OF 5</span>
+            <h2 class="puzzle-title">🪞 Mirror of Realignment</h2>
+            <p class="puzzle-description">
+                GERT® teaches us to transform negative patterns through positive affirmations. 
+                Create a healing affirmation that includes BOTH of these powerful words:
+            </p>
+            <div style="text-align: center; margin: 20px 0;">
+                <span style="display: inline-block; background: #f093fb; color: white; padding: 10px 20px; border-radius: 20px; margin: 5px; font-weight: bold;">FORGIVENESS</span>
+                <span style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 20px; margin: 5px; font-weight: bold;">LOVE</span>
+            </div>
+            <input type="text" id="affirmationInput" placeholder="Type your healing affirmation here...">
+            <button class="submit-btn" onclick="checkPuzzle2()">Unlock Next Puzzle</button>
+            <div class="feedback" id="feedback2"></div>
+        </div>
+
+        <!-- Puzzle 3: Family Tree Cipher -->
+        <div class="puzzle-card" id="puzzle3">
+            <span class="puzzle-number">PUZZLE 3 OF 5</span>
+            <h2 class="puzzle-title">🌳 Family Tree Cipher</h2>
+            <p class="puzzle-description">
+                Every generation holds wisdom. Decode this cipher from your ancestors by taking the 
+                <strong>first letter</strong> of each word:
+            </p>
+            <div class="cipher-grid">
+                <div class="cipher-item">Bravery</div>
+                <div class="cipher-item">Reaches</div>
+                <div class="cipher-item">Everyone</div>
+                <div class="cipher-item">Always</div>
+                <div class="cipher-item">Knowing</div>
+                <div class="cipher-item">The</div>
+                <div class="cipher-item">Heart</div>
+                <div class="cipher-item">Empowers</div>
+                <div class="cipher-item">Change</div>
+                <div class="cipher-item">You</div>
+                <div class="cipher-item">Create</div>
+                <div class="cipher-item">Love</div>
+                <div class="cipher-item">Each</div>
+            </div>
+            <input type="text" id="cipherInput" placeholder="Enter the decoded phrase...">
+            <button class="submit-btn" onclick="checkPuzzle3()">Unlock Next Puzzle</button>
+            <div class="feedback" id="feedback3"></div>
+        </div>
+
+        <!-- Puzzle 4: Emotional Weight Balance -->
+        <div class="puzzle-card" id="puzzle4">
+            <span class="puzzle-number">PUZZLE 4 OF 5</span>
+            <h2 class="puzzle-title">⚖️ Emotional Weight Balance</h2>
+            <p class="puzzle-description">
+                In GERT®, we learn to release heavy emotions and embrace lighter ones. 
+                Select the TWO positive emotions that will balance the scale:
+            </p>
+            <div class="options">
+                <button class="option-btn" data-emotion="joy">✨ Joy</button>
+                <button class="option-btn" data-emotion="love">💖 Love</button>
+                <button class="option-btn" data-emotion="resentment">⛓️ Resentment</button>
+                <button class="option-btn" data-emotion="worry">😰 Worry</button>
+            </div>
+            <button class="submit-btn" onclick="checkPuzzle4()">Unlock Final Puzzle</button>
+            <div class="feedback" id="feedback4"></div>
+        </div>
+
+        <!-- Puzzle 5: Final Escape -->
+        <div class="puzzle-card" id="puzzle5">
+            <span class="puzzle-number">PUZZLE 5 OF 5</span>
+            <h2 class="puzzle-title">🚪 Final Escape: Your Healing Mantra</h2>
+            <p class="puzzle-description">
+                You've learned about generational patterns, affirmations, ancestral wisdom, and emotional balance. 
+                Now it's time to create YOUR personal healing mantra. Write something that speaks to your heart:
+            </p>
+            <p class="puzzle-description" style="font-size: 0.9em; color: #764ba2;">
+                💡 <strong>Bonus:</strong> Include the words "release" and "healing" for extra recognition!
+            </p>
+            <textarea id="mantraInput" placeholder="I choose to release the past and embrace healing..."></textarea>
+            <button class="submit-btn" onclick="checkPuzzle5()">Complete Your Journey</button>
+            <div class="feedback" id="feedback5"></div>
+        </div>
+
+        <!-- Completion Message -->
+        <div class="completion-message" id="completionMessage">
+            <h2>🎉 Congratulations!</h2>
+            <p>
+                You've completed your journey through GERT® (Generational Emotional Realignment Therapy). 
+                You've learned to identify generational patterns, create healing affirmations, decode 
+                ancestral wisdom, balance emotions, and craft your own healing mantra.
+            </p>
+            <p style="font-weight: bold; color: #764ba2;">
+                Remember: Healing is a journey, not a destination. 💜
+            </p>
+            <button class="restart-btn" onclick="restartGame()">Start New Journey</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedEmotion = null;
+        let selectedEmotions = [];
+
+        // Puzzle 1: Multiple choice selection
+        document.querySelectorAll('#puzzle1 .option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#puzzle1 .option-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedEmotion = this.getAttribute('data-answer');
+            });
+        });
+
+        function checkPuzzle1() {
+            const feedback = document.getElementById('feedback1');
+            
+            if (!selectedEmotion) {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Please select an emotion first!';
+                return;
+            }
+
+            if (selectedEmotion.toLowerCase() === 'fear') {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Correct! Fear is the pattern repeating across generations. Understanding this is the first step to healing.';
+                setTimeout(() => {
+                    document.getElementById('puzzle1').classList.remove('active');
+                    document.getElementById('puzzle2').classList.add('active');
+                    updateProgress(20);
+                }, 1500);
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Not quite. Look for the emotion connected to avoidance and hesitation in all three generations.';
+            }
+        }
+
+        function checkPuzzle2() {
+            const input = document.getElementById('affirmationInput').value.toLowerCase();
+            const feedback = document.getElementById('feedback2');
+
+            if (input.trim() === '') {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Please write an affirmation first!';
+                return;
+            }
+
+            const hasForgiveness = input.includes('forgive') || input.includes('forgiveness');
+            const hasLove = input.includes('love');
+
+            if (hasForgiveness && hasLove) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Beautiful! Your affirmation combines forgiveness and love - the foundation of GERT® healing.';
+                setTimeout(() => {
+                    document.getElementById('puzzle2').classList.remove('active');
+                    document.getElementById('puzzle3').classList.add('active');
+                    updateProgress(40);
+                }, 1500);
+            } else {
+                const missing = [];
+                if (!hasForgiveness) missing.push('forgiveness');
+                if (!hasLove) missing.push('love');
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = `❌ Your affirmation needs to include: ${missing.join(' and ')}. Try again!`;
+            }
+        }
+
+        function checkPuzzle3() {
+            const input = document.getElementById('cipherInput').value.toLowerCase().trim();
+            const feedback = document.getElementById('feedback3');
+
+            if (input === '') {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Please enter your answer first!';
+                return;
+            }
+
+            const correctAnswers = ['break the cycle', 'breakthe cycle', 'breakthecycle'];
+            
+            if (correctAnswers.includes(input.replace(/\s+/g, ' '))) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Excellent! "Break the cycle" - the core mission of GERT® therapy!';
+                setTimeout(() => {
+                    document.getElementById('puzzle3').classList.remove('active');
+                    document.getElementById('puzzle4').classList.add('active');
+                    updateProgress(60);
+                }, 1500);
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Not quite. Take the FIRST letter of each word to decode the message.';
+            }
+        }
+
+        // Puzzle 4: Multiple selection
+        document.querySelectorAll('#puzzle4 .option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const emotion = this.getAttribute('data-emotion');
+                
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    selectedEmotions = selectedEmotions.filter(e => e !== emotion);
+                } else {
+                    this.classList.add('selected');
+                    selectedEmotions.push(emotion);
+                }
+            });
+        });
+
+        function checkPuzzle4() {
+            const feedback = document.getElementById('feedback4');
+
+            if (selectedEmotions.length === 0) {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Please select at least one emotion!';
+                return;
+            }
+
+            const hasJoy = selectedEmotions.includes('joy');
+            const hasLove = selectedEmotions.includes('love');
+            const hasNegative = selectedEmotions.includes('resentment') || selectedEmotions.includes('worry');
+
+            if (hasJoy && hasLove && !hasNegative && selectedEmotions.length === 2) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Perfect! Joy and Love are the positive emotions that bring balance and healing!';
+                setTimeout(() => {
+                    document.getElementById('puzzle4').classList.remove('active');
+                    document.getElementById('puzzle5').classList.add('active');
+                    updateProgress(80);
+                }, 1500);
+            } else {
+                feedback.className = 'feedback incorrect';
+                if (hasNegative) {
+                    feedback.textContent = '❌ Choose only POSITIVE emotions to balance the scale. Try again!';
+                } else if (selectedEmotions.length !== 2) {
+                    feedback.textContent = '❌ Select exactly TWO positive emotions to balance the scale.';
+                } else {
+                    feedback.textContent = '❌ Not quite right. Focus on the most uplifting emotions!';
+                }
+            }
+        }
+
+        function checkPuzzle5() {
+            const input = document.getElementById('mantraInput').value.trim();
+            const feedback = document.getElementById('feedback5');
+
+            if (input === '') {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '❌ Please write your healing mantra first!';
+                return;
+            }
+
+            const hasRelease = input.toLowerCase().includes('release');
+            const hasHealing = input.toLowerCase().includes('healing');
+
+            feedback.className = 'feedback correct';
+
+            if (hasRelease && hasHealing) {
+                feedback.textContent = '✅ Extraordinary! Your mantra includes "release" and "healing" - you truly understand GERT® principles! 🌟';
+            } else {
+                feedback.textContent = '✅ Wonderful! Every healing mantra is unique and powerful in its own way! 💜';
+            }
+
+            setTimeout(() => {
+                document.getElementById('puzzle5').classList.remove('active');
+                document.getElementById('completionMessage').classList.add('active');
+                updateProgress(100);
+            }, 2000);
+        }
+
+        function updateProgress(percentage) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        function restartGame() {
+            // Reset all variables
+            selectedEmotion = null;
+            selectedEmotions = [];
+
+            // Clear all inputs
+            document.getElementById('affirmationInput').value = '';
+            document.getElementById('cipherInput').value = '';
+            document.getElementById('mantraInput').value = '';
+
+            // Clear all selections
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+
+            // Hide all feedback
+            document.querySelectorAll('.feedback').forEach(fb => fb.style.display = 'none');
+
+            // Reset to first puzzle
+            document.querySelectorAll('.puzzle-card').forEach(card => card.classList.remove('active'));
+            document.getElementById('puzzle1').classList.add('active');
+            document.getElementById('completionMessage').classList.remove('active');
+
+            // Reset progress
+            updateProgress(0);
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize progress bar
+        updateProgress(0);
+    </script>
+</body>
+</html>
